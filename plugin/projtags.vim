@@ -1,7 +1,7 @@
 " projtags.vim
 " Brief: Set tags file for per project
-" Version: 0.42
-" Date: Jul. 18, 2010
+" Version: 0.43
+" Date: Sep. 14, 2017
 " Author: Yuxuan 'fishy' Wang <fishywang@gmail.com>
 "
 " Installation: put this file under your ~/.vim/plugin/
@@ -10,35 +10,38 @@
 "
 " Set your projects path into g:ProjTags as a list, for example:
 "
-" let g:ProjTags = [ "~/work/proj1" ]
+" let g:ProjTags = [ '~/work/proj1' ]
 " 
-" In this case for all file match the pattern "~/work/proj1/*", the tag file
-" "~/work/proj1/tags" will be used.
+" In this case for all file match the pattern '~/work/proj1/*', the tag file
+" '~/work/proj1/tags' will be used.
 "
 " You can also specify a tags file other than the default one or more tags
 " files for one directory by a list:
 "
-" let g:ProjTags += [[ "~/work/proj2", "~/work/proj2/tags",
-" "~/work/common.tags" ]]
+" let g:ProjTags += [[ '~/work/proj2', '~/work/proj2/tags',
+" '~/work/common.tags' ]]
 " 
-" In this case for all files match the pattern "~/work/proj2/*", the tag files
-" "~/work/proj2/tags" and "~/work/common.tags" will be used.
+" In this case for all files match the pattern '~/work/proj2/*', the tag files
+" '~/work/proj2/tags' and '~/work/common.tags' will be used.
 "
-" If one of the items in the list begins with ":", it will be treated as a
+" If one of the items in the list begins with ':', it will be treated as a
 " command (other than tag file):
 "
-" let g:ProjTags += [[ "~/work/proj3", "~/work/proj3/tags",
-" ":set shiftwidth=4" ]]
+" let g:ProjTags += [[ '~/work/proj3', '~/work/proj3/tags',
+" ':set shiftwidth=4' ]]
 "
-" In this case for all files match the pattern "~/work/proj3/*", the tag file
-" "~/work/proj3/tags" will be used, and "shiftwidth=4" will be set.
+" In this case for all files match the pattern '~/work/proj3/*', the tag file
+" '~/work/proj3/tags' will be used, and 'shiftwidth=4' will be set.
 "
-" Please note that if you use "set" in the command, we will actually use
-" "setlocal" instead, to avoid polluting the whole vim environment.
+" Please note that if you use 'set' in the command, we will actually use
+" 'setlocal' instead, to avoid polluting the whole vim environment.
 "
 " You can add the above codes into your vimrc file
 "
 " Revisions:
+"
+" 0.43, Sep. 14, 2017:
+"  * Fix lint warnings (vim-vint)
 "
 " 0.42, Jul. 18, 2010:
 "  + added missing "let" thanks to Adam!
@@ -61,30 +64,33 @@
 "
 
 function! SetProjTags()
-	if exists("g:ProjTags")
-		for item in g:ProjTags
+	if exists('g:ProjTags')
+		for l:item in g:ProjTags
 			try
-				let [filepattern; tagfiles] = item
-				if match(filepattern, "\/$") == -1
-					let filepattern .= "/"
+				let [l:filepattern; l:tagfiles] = l:item
+				if match(l:filepattern, '\/$') == -1
+					let l:filepattern .= '/'
 				endif
-				let filepattern .= "*"
-			catch /.*List.*/ " item is not a list
-				if match(item, "\/$") == -1
-					let item .= "/"
+				let l:filepattern .= '*'
+			catch /.*List.*/ " l:item is not a list
+				if match(l:item, '\/$') == -1
+					let l:item .= '/'
 				endif
-				let filepattern = item . "*"
-				let tagfiles = [item . "tags"]
+				let l:filepattern = l:item . '*'
+				let l:tagfiles = [l:item . 'tags']
 			endtry
-			for tagfile in tagfiles
-				if match(tagfile, "^:") != -1
-					let cmd = substitute(tagfile, "^:set ", ":setlocal ", "")
-					execute 'autocmd BufEnter ' . filepattern . ' ' . cmd 
+      execute 'augroup projtags'
+      execute 'au!'
+			for l:tagfile in l:tagfiles
+				if match(l:tagfile, '^:') != -1
+					let l:cmd = substitute(l:tagfile, '^:set ', ':setlocal ', '')
+					execute 'autocmd BufEnter ' . l:filepattern . ' ' . l:cmd
 				else
-					execute 'autocmd BufEnter ' . filepattern . ' :setlocal tags+=' . tagfile 
+					execute 'autocmd BufEnter ' . l:filepattern . ' :setlocal tags+=' . l:tagfile
 				endif
 			endfor
-			unlet item
+      execute 'augroup END'
+			unlet l:item
 		endfor
 	endif
 endfunc
