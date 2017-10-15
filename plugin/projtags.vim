@@ -1,6 +1,7 @@
+" vim: set noexpandtab tabstop=2 shiftwidth=2 :
 " projtags.vim
 " Brief: Set tags file for per project
-" Version: 0.43
+" Version: 0.44
 " Date: Sep. 14, 2017
 " Author: Yuxuan 'fishy' Wang <fishywang@gmail.com>
 "
@@ -40,6 +41,9 @@
 "
 " Revisions:
 "
+" 0.44, Oct. 15, 2017:
+"  * Fix augroup bug introduced in v0.43
+"
 " 0.43, Sep. 14, 2017:
 "  * Fix lint warnings (vim-vint)
 "
@@ -65,6 +69,8 @@
 
 function! SetProjTags()
 	if exists('g:ProjTags')
+		execute 'augroup projtags'
+		execute 'au!'
 		for l:item in g:ProjTags
 			try
 				let [l:filepattern; l:tagfiles] = l:item
@@ -79,8 +85,6 @@ function! SetProjTags()
 				let l:filepattern = l:item . '*'
 				let l:tagfiles = [l:item . 'tags']
 			endtry
-      execute 'augroup projtags'
-      execute 'au!'
 			for l:tagfile in l:tagfiles
 				if match(l:tagfile, '^:') != -1
 					let l:cmd = substitute(l:tagfile, '^:set ', ':setlocal ', '')
@@ -89,9 +93,9 @@ function! SetProjTags()
 					execute 'autocmd BufEnter ' . l:filepattern . ' :setlocal tags+=' . l:tagfile
 				endif
 			endfor
-      execute 'augroup END'
 			unlet l:item
 		endfor
+		execute 'augroup END'
 	endif
 endfunc
 
